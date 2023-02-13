@@ -17,7 +17,13 @@
     along with sgm.  If not, see <http://www.gnu.org/licenses/>.
 
 **/
-
+#include "util.h"
+#include "configuration.h"
+#include "costs.h"
+#include "hamming_cost.h"
+#include "median_filter.h"
+#include "cost_aggregation.h"
+#include "debug.h"
 #include "disparity_method.h"
 
 static cudaStream_t stream1, stream2, stream3;//, stream4, stream5, stream6, stream7, stream8;
@@ -58,7 +64,7 @@ void init_disparity_method(const uint8_t _p1, const uint8_t _p2) {
     cols = 0;
 }
 
-cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_time_ms, const char* directory, const char* fname) {
+cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_time_ms,  const char* fname) {
 	if(cols != left.cols || rows != left.rows) {
 		debug_log("WARNING: cols or rows are different");
 		if(!first_alloc) {
@@ -106,7 +112,7 @@ cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_tim
 	cudaEventCreate(&stop);
 	cudaEventRecord(start, 0);
 
-	dim3 block_size;
+		dim3 block_size;
 	block_size.x = 32;
 	block_size.y = 32;
 
@@ -123,7 +129,7 @@ cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_tim
 	}
 
 	// Hamming distance
-	CUDA_CHECK_RETURN(cudaStreamSynchronize(stream1));
+		CUDA_CHECK_RETURN(cudaStreamSynchronize(stream1));
 	debug_log("Calling Hamming Distance");
 	HammingDistanceCostKernel<<<rows, MAX_DISPARITY, 0, stream1>>>(d_transform0, d_transform1, d_cost, rows, cols);
 	err = cudaGetLastError();
@@ -150,7 +156,7 @@ cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_tim
 		printf("Error: %s %d\n", cudaGetErrorString(err), err);
 		exit(-1);
 	}
-	debug_log("Calling Up to Down");
+		debug_log("Calling Up to Down");
 	CostAggregationKernelUpToDown<<<(cols+PIXELS_PER_BLOCK-1)/PIXELS_PER_BLOCK, COSTAGG_BLOCKSIZE, 0, stream1>>>(d_cost, d_L2, p1, p2, rows, cols, d_transform0, d_transform1, d_disparity, d_L0, d_L1, d_L2, d_L3, d_L4, d_L5, d_L6);
 	err = cudaGetLastError();
 	if (err != cudaSuccess) {
@@ -202,10 +208,12 @@ cv::Mat compute_disparity_method(cv::Mat left, cv::Mat right, float *elapsed_tim
 	}
 
 	cudaEventRecord(stop, 0);
+
 	CUDA_CHECK_RETURN(cudaDeviceSynchronize());
 	cudaEventElapsedTime(elapsed_time_ms, start, stop);
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
+
 
 	debug_log("Copying final disparity to CPU");
 	CUDA_CHECK_RETURN(cudaMemcpy(h_disparity, d_disparity_filtered_uchar, sizeof(uint8_t)*size, cudaMemcpyDeviceToHost));

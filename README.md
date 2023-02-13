@@ -1,3 +1,6 @@
+Example usage of sgm algorithm in cpp files
+
+
 # Semi-Global Matching on the GPU
 
 This is the implementation of [Embedded real-time stereo estimation via Semi-Global Matching on the GPU](http://www.sciencedirect.com/science/article/pii/S1877050916306561), [D. Hernandez-Juarez](http://danihernandez.eu) et al, ICCS 2016.

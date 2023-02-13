@@ -1,5 +1,13 @@
+#    This file is part of sgm. (https://github.com/dhernandez0/sgm).
+#
+#    Copyright (c) 2016 Daniel Hernandez Juarez.
 cmake_minimum_required(VERSION 3.0.0)
 project(sgm VERSION 0.1.0)
+
+#    sgm is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.cmake_minimum_required(VERSION 3.0.0)
 
 include(CTest)
 enable_testing()
